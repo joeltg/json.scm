@@ -1,79 +1,123 @@
-(define default-value 0)
-(define things '())
-(define maxiter 10)
-(define (tolerance output)
-  (/ output 100))
+;;;; json.scm
 
-(define-structure (thing (constructor silently-make-thing (f g args vals)))
-  (id (get-id) read-only #t)
-  (f #f read-only #t)
-  (g #f read-only #t)
-  (args #f read-only #t)
-  (vals #f))
+;; scheme      json
+;; ----------------
+;; symbol  ->  string    'foo   -> "\"foo\""
+;; string  ->  string    "bar"  -> "\"bar\""
+;; number  ->  number    .1337  -> "0.1337"
+;; boolean ->  boolean   #t     -> "true"
+;; null    ->  null      '()    -> "null"
+;; list    ->  array     '(1 2) -> "[1 2]"
+;; alist   ->  object    '((foo 0) (bar 42)) -> "{\"foo\": 0, \"bar\": 42}"
+;; ----------------
 
-(define (get-thing id)
-  (let ((match (assq id things)))
-    (and match (cdr match))))
+;; Set a max. length for decimal numbers. Comment out if you don't care.
+(define digit-cutoff 5)
+(set! flonum-unparser-cutoff `(relative ,digit-cutoff))
 
-(define (make-thing f)
-  (let ((args (lambda-args f)) (g (lambda-gradient f)))
-    (let ((vals (vector-map (lambda (arg) default-value) args)))
-      (let ((thing (silently-make-thing f g args vals)))
-        (set! things (cons (cons (thing-id thing) thing) things))
-        thing))))
+;; Scheme is very loose with its numbers, especially their string representations.
+;; JSON is very strict. number->json might produce invalid JSON for some edge cases.
 
-(define (eval-thing thing)
-  (assert (thing? thing))
-  (apply (thing-f thing) (vector->list (thing-vals thing))))
+;(define (number->json number)
+;  (let ((number (integer? number) number (exact->inexact number)))
+;    (list "\"" (number->string number) "\"")))
 
-; fluid-args is a vector of symbols (for free args) or #f (for fixed args)
-(define (make-lambda f vals fluid-args)
-  fo)
+(define (number->json number)
+  (apply string-append (number->json-list number)))
 
-;(define (expr->thing expr)
-;  (assert (or (eq? number-type-tag (type expr))
-;              (number? expr)
-;              (symbol? epxr)))
-;  (let ((thing (silently-make-thing
-;                 (simplify expr)
-;                 (map (lambda (symbol) (list symbol default-value))
-;                      (delete-duplicates (extract-symbols expr))))))
-;    (set! things (cons (cons (thing-id thing) thing) things))
-;    thing))
+(define (number->json-list number)
+  (if (integer? number) (list (number->string number))
+    (let* ((string (number->string (exact->inexact number)))
+           (length-of-string (string-length string)))
+      (cond ((string=? "." (substring string 0 1))
+              (list "0" string))
+            ((and (> length-of-string 2) (string=? "-." (substring string 0 2)))
+              (list "-0." (substring string 2 length-of-string)))
+            ((string=? "." (substring string (- length-of-string 1) length-of-string))
+              (list string "0"))
+            (else (list string))))))
 
-(define (lambda-args lambda-expression)
-  (vector-tail (system-pair-cdr (procedure-lambda lambda-expression)) 1))
+(define (escape-char char)
+  (cond ((char=? char #\\) "\\\\")
+         ((char=? char #\") "\\\"")
+         (else (char->string char))))
 
-(define (lambda-gradient lambda-expression)
-  (D lambda-expression))
+(define (string->json string)
+  (apply string-append (string->json-list string)))
 
-(define (minimize f g output initial)
-  (bfgs f g initial initial (tolerance output) maxiter))
+(define (string->json-list string)
+  `("\"" ,@(map escape-char (string->list string)) "\""))
 
-(define (foo-thing thing desired-output)
-  (let ((f (thing-f thing))
-        (g (thing-g thing))
-        (vals (thing-vals thing)))
-    (define (minimizer vals)
-      (abs (- desired-output (apply f (vector->list vals)))))
-    (define (minimizer-gradient vals)
-      (let ((args (vector->list vals)))
-        (* (sign (- desired-output (apply f args))) (apply g args))))
-    (minimize minimizer minimizer-gradient (apply f (vector->list vals)) vals)))
+(define (symbol->json symbol)
+  (apply string-append (symbol->json-list symbol)))
 
-(define (foo-thing thing desired-output free-args fixed-args)
-  (let ((f (thing-f thing))
-        (g (thing-g thing)))
-    ))
+(define (symbol->json-list symbol)
+  (string->json-list (symbol->string symbol)))
 
-(define (extract-symbols expr)
+(define (boolean->json boolean)
+  (apply string-append (boolean->json-list booleaN)))
+
+(define (boolean->json-list boolean)
+  (list (if boolean "true" "false")))
+
+(define (null->json null)
+  (apply string-append (null->json-list null)))
+
+(define (null->json-list null)
+  (list "null"))
+
+(define (map-json f series)
+  (if (= 0 (length series))
+    '()
+    (append
+      (f (car series))
+      (append-map (lambda (elem) (cons "," (f elem))) (cdr series)))))
+
+(define (array->json array)
+  (apply string-append (array->json-list array)))
+
+(define (array->json-list array)
+  `("[" ,@(map-json json-list array) "]"))
+
+(define (pair->json-list pair)
+  `(,@(json-list (car pair)) ":" ,@(json-list (cadr pair))))
+
+(define (dict->json alist)
+  (apply string-append (dict->json-list alist)))
+
+(define (dict->json-list alist)
+  `("{" ,@(map-json pair->json-list alist) "}"))
+
+(define (array? array)
+  (and (list? array) (not (dict? array)) (> (length array) 0)))
+
+(define (dict? dict)
+  (and
+    (list? dict)
+    (> (length dict) 0)
+    (every
+      (lambda (elem)
+        (and
+          (list? elem)
+          (= 2 (length elem))
+          (or
+            (symbol? (car elem))
+            (string? (car elem)))))
+      dict)))
+
+(define (json-error object)
+  (error "invalid json object" object))
+
+(define (json-list object)
   (cond
-    ((number? expr) '())
-    ((symbol? expr) (list expr))
-    ((eq? number-type-tag (type expr))
-      (let iter ((tree (expression expr)))
-        (cond
-          ((symbol? tree) (list tree))
-          ((number? tree) '())
-          ((list? tree) (reduce append '() (map iter (cdr tree))))
-          (else '()))))))
+    ((boolean? object) (boolean->json-list object))
+    ((symbol? object) (symbol->json-list object))
+    ((string? object) (string->json-list object))
+    ((number? object) (number->json-list object))
+    ((null? object) (null->json-list object))
+    ((dict? object) (dict->json-list object))
+    ((array? object) (array->json-list object))
+    (else (json-error object))))
+
+(define (json object)
+  (apply string-append (json-list object)))
