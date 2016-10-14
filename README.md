@@ -2,7 +2,7 @@
 Scheme to JSON utilities
 
 ```
-;; scheme    json
+;; scheme      json
 ;; ----------------
 ;; symbol  ->  string
 ;; string  ->  string
