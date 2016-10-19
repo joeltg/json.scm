@@ -79,6 +79,12 @@
 (define (array->json-list array)
   `("[" ,@(map-json json-list array) "]"))
 
+(define (vector->json v)
+  (array->json (vector->list v)))
+
+(define (vector->json-list v)
+  (array->json-list (vector->list v)))
+
 (define (pair->json-list pair)
   `(,@(json-list (car pair)) ":" ,@(json-list (cadr pair))))
 
@@ -117,6 +123,7 @@
     ((null? object) (null->json-list object))
     ((dict? object) (dict->json-list object))
     ((array? object) (array->json-list object))
+    ((vector? object) (vector->json-list object))
     (else (json-error object))))
 
 (define (json object)
