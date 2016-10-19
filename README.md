@@ -14,12 +14,13 @@ Scheme to JSON utilities
 ;; ----------------
 
 (load "json")
-(json 'foo)   ; => "\"foo\""
-(json "bar")  ; => "\"bar\""
-(json .1337)  ; => "0.1337"
-(json #t)     ; => "true"
-(json '())    ; => "null"
-(json '(1 2)) ; => "[1 2]"
+(json 'foo)    ; => "\"foo\""
+(json "bar")   ; => "\"bar\""
+(json .1337)   ; => "0.1337"
+(json #t)      ; => "true"
+(json '())     ; => "null"
+(json '(1 2))  ; => "[1 2]"
+(json #('x 'y) ; => "[\"x\", \"y\"]"
 
 (json '((foo 0) (bar 42))) 
 #| "{\"foo\":0,\"bar\":42}" |#
