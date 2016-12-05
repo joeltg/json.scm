@@ -1,15 +1,17 @@
 ;;;; json.scm
 
 ;; scheme      json
-;; -------------------
-;; symbol  ->  string    'foo   -> "\"foo\""
-;; string  ->  string    "bar"  -> "\"bar\""
-;; number  ->  number    .1337  -> "0.1337"
-;; boolean ->  boolean   #t     -> "true"
-;; null    ->  null      '()    -> "null"
-;; list    ->  array     '(1 2) -> "[1 2]"
-;; alist   ->  object    '((foo 0) (bar 42)) -> "{\"foo\": 0, \"bar\": 42}"
-;; -------------------
+;; ----------------------
+;; symbol     ->  string    'foo   -> "\"foo\""
+;; string     ->  string    "bar"  -> "\"bar\""
+;; number     ->  number    .1337  -> "0.1337"
+;; boolean    ->  boolean   #t     -> "true"
+;; list       ->  array     '(1 2) -> "[1 2]"
+;; null       ->  null      '()    -> "null"
+;; default    ->  null      #!default    -> "null"
+;; unspecific ->  null      #!unspecific -> "null"
+;; alist      ->  object    '((foo 0) (bar 42)) -> "{\"foo\": 0, \"bar\": 42}"
+;; ----------------------   
 
 ;; Set a max. length for decimal numbers. Comment out if you don't care.
 (define digit-cutoff 5)
@@ -115,6 +117,7 @@
 
 (define (json-list object)
   (cond
+    ((eq? #!unspecific object) (null->json-list object))
     ((default-object? object) (null->json-list object))
     ((boolean? object) (boolean->json-list object))
     ((symbol? object) (symbol->json-list object))
