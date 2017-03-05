@@ -19,13 +19,14 @@ Scheme to JSON utilities
 (json-encode "bar")  ; => "\"bar\""
 (json-encode .1337)  ; => "0.1337"
 (json-encode #t)     ; => "true"
-(json-encode #(1 2)) ; => "[1 2]"
+(json-encode #(1 2)) ; => "[1,2]"
 (json-encode #!unspecific ; => "null"
 (json-encode '((a . 0) (b . 42))) ; => "{\"a\":0,\"b\":42}"
 
 ;; Decode returns a vector of parsed objects.
 ;; All object keys are parsed into symbols.
 ;; All other JSON strings are parsed into strings.
+
 (json-decode "\"foo\"") ; => #("foo")
 (json-decode "\"bar\"") ; => #("bar")
 (json-decode "0.1337")  ; => #(0.1337)
