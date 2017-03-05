@@ -23,6 +23,7 @@ Scheme to JSON utilities
 (json-encode #!unspecific ; => "null"
 (json-encode '((a . 0) (b . 42))) ; => "{\"a\":0,\"b\":42}"
 
+;; Decode returns a vector of parsed objects.
 ;; All object keys are parsed into symbols.
 ;; All other JSON strings are parsed into strings.
 (json-decode "\"foo\"") ; => #("foo")
@@ -31,5 +32,5 @@ Scheme to JSON utilities
 (json-decode "true")    ; => #(#t)
 (json-decode "[1, 2]")  ; => #(#(1 2))
 (json-decode "null")    ; => #(#!unspecific)
-(json-decode "{\"a\": 0, \"b\": 42}") ; => #((a . 0) (b . 42))
+(json-decode "{\"a\": 0, \"b\": 42}") ; => #(((a . 0) (b . 42)))
 ```
