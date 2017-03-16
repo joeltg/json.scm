@@ -27,8 +27,19 @@
       (lambda (v)
         (vector (vector->list v)))
       (seq
-        "{"
-        (? (seq (* (seq json-object-pair ",")) json-object-pair))
+       "{"
+        (noise (* (char-set char-set:whitespace)))
+        (? (seq (*
+		 (seq
+		   (noise (* (char-set char-set:whitespace)))
+		   json-object-pair
+		   (noise
+		     (seq
+		       (* (char-set char-set:whitespace))
+		       ","
+		       (* (char-set char-set:whitespace))))))
+		json-object-pair
+		(noise (* (char-set char-set:whitespace)))))
         "}"))))
 
 (define json-array

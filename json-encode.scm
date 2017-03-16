@@ -86,5 +86,6 @@
 
 (set! json-encode 
   (lambda (object)
-    (list->string (car (json object))))))
+    (if (null? object) "{}"
+      (list->string (car (json object)))))))
 
