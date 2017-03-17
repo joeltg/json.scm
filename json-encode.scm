@@ -75,6 +75,7 @@
 
 (define (json object)
   (cond
+    ((null? object) (json-atom (string->list "{}")))
     ((eq? #!unspecific object) (null->json object))
     ((boolean? object) (boolean->json object))
     ((symbol? object) (symbol->json object))
@@ -86,6 +87,5 @@
 
 (set! json-encode 
   (lambda (object)
-    (if (null? object) "{}"
-      (list->string (car (json object)))))))
+    (list->string (car (json object))))))
 
