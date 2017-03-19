@@ -2,7 +2,7 @@
 
 (define json-decode)
 
-(let ()
+;;(let ()
 
 (define (json-vector-list v)
   (vector (vector->list v)))
@@ -64,9 +64,9 @@
           (lambda (v)
             (let ((const (vector-ref v 0)))
               (cond
-                ((string=? "true" const) #t)
-                ((string=? "false" const) #f)
-                ((string=? "null" const) #!unspecific))))
+                ((string=? "true" const) (vector #t))
+                ((string=? "false" const) (vector #f))
+                ((string=? "null" const) (vector #!unspecific)))))
           (match (alt "true" "false" "null"))))
       (noise (* (char-set char-set:whitespace))))))
 
@@ -123,7 +123,7 @@
   (*parser
     (alt
       (seq
-        "\""
+        "\\"
         (alt
           json-string-unicode
           (transform
@@ -164,5 +164,5 @@
 
 (set! json-decode 
   (lambda (json-string)
-    (json-value (string->parser-buffer json-string)))))
+    (json-value (string->parser-buffer json-string))));)
 
