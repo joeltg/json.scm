@@ -2,7 +2,7 @@
 
 (define json-decode)
 
-;;(let ()
+(let ()
 
 (define (json-vector-list v)
   (vector (vector->list v)))
@@ -148,7 +148,7 @@
       (seq
         (? (match "-"))
         (alt
-          "0"
+          (match "0")
           (seq
             (match (char-set (char-set-difference char-set:numeric (char-set #\0))))
             (* (match (char-set char-set:numeric)))))
@@ -164,5 +164,5 @@
 
 (set! json-decode 
   (lambda (json-string)
-    (json-value (string->parser-buffer json-string))));)
+    (json-value (string->parser-buffer json-string)))))
 
